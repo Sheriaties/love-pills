@@ -496,51 +496,46 @@
     return h + m / 60;
   }
 
+  // 每剂药定义：
+  //   固定窗口：start-end（美东小时）
+  //   条件窗口：dependsOn 某剂被吃后，delay 小时开始，持续 duration 小时
+  //             若依赖未满足则不催；依赖窗口结束后视为错过
+  const DOSES = [
+    { key: 'blue-1',   color: 'blue',   threshold: 1, start: 6,  end: 11, msg: '我想吃蓝色药丸 💙' },
+    { key: 'blue-2',   color: 'blue',   threshold: 2, start: 12, end: 14, msg: '我想吃蓝色药丸 💙' },
+    { key: 'white-1',  color: 'white',  threshold: 1, dependsOn: 'blue-2', delay: 0.5, duration: 2, msg: '我想吃白色细长药片 🤍' },
+    { key: 'yellow-1', color: 'yellow', threshold: 1, start: 12, end: 14, msg: '我想吃黄色药片 💛' },
+    { key: 'blue-3',   color: 'blue',   threshold: 3, start: 17, end: 19, msg: '我想吃蓝色药丸 💙' },
+    { key: 'white-2',  color: 'white',  threshold: 2, dependsOn: 'blue-3', delay: 0.5, duration: 2, msg: '我想吃白色细长药片 🤍' },
+    { key: 'yellow-2', color: 'yellow', threshold: 2, start: 17, end: 19, msg: '我想吃黄色药片 💛' },
+    { key: 'pink-1',   color: 'pink',   threshold: 1, start: 21, end: 23, msg: '我想吃粉色药片 🌸' }
+  ];
+
+  function doseWindow(d, taken) {
+    if (d.dependsOn) {
+      const t = taken[d.dependsOn];
+      if (t == null) return null;
+      return { start: t + d.delay, end: t + d.delay + d.duration };
+    }
+    return { start: d.start, end: d.end };
+  }
+
   // 根据美东时间 + 当前进度，返回小狗气泡该说什么。null = 隐藏气泡。
+  // 多个活跃时 start 越晚（越新）优先
   function getReminder(state) {
     const h = etHour();
     const p = state.todayProgress;
-
-    // 时段目标（美东时间截止前应吃到的累计数）
-    // 10:00 前  → 蓝1
-    // 12:00 前  → 蓝2、白1、黄1
-    // 17:00 前  → 蓝3、白2、黄2
-    // 21:00 起  → 粉1
-
-    // 早上时段：10 点前只催第 1 颗蓝
-    if (h < 10) {
-      if (p.blue < 1) return '我想吃蓝色药丸 💙';
-      return null; // 都跟上了，不催
+    const taken = state.doseTakenAt || {};
+    const active = [];
+    for (const d of DOSES) {
+      if ((p[d.color] || 0) >= d.threshold) continue;
+      const w = doseWindow(d, taken);
+      if (!w) continue;
+      if (h >= w.start && h < w.end) active.push({ d, start: w.start });
     }
-
-    // 上午时段：10-12 点，第 1 颗蓝必须
-    if (h < 12) {
-      if (p.blue < 1) return '我想吃蓝色药丸 💙';
-      return null;
-    }
-
-    // 中午～下午 5 点：第 2 组（蓝2、白1、黄1）
-    if (h < 17) {
-      if (p.blue < 2) return '我想吃蓝色药丸 💙';
-      if (p.white < 1) return '我想吃白色细长药片 🤍';
-      if (p.yellow < 1) return '我想吃黄色药片 💛';
-      return null;
-    }
-
-    // 下午 5 点～晚 9 点：第 3 组（蓝3、白2、黄2）
-    if (h < 21) {
-      if (p.blue < 3) return '我想吃蓝色药丸 💙';
-      if (p.white < 2) return '我想吃白色细长药片 🤍';
-      if (p.yellow < 2) return '我想吃黄色药片 💛';
-      return null;
-    }
-
-    // 晚 9 点后：粉色
-    if (p.blue < 3) return '我想吃蓝色药丸 💙';
-    if (p.white < 2) return '我想吃白色细长药片 🤍';
-    if (p.yellow < 2) return '我想吃黄色药片 💛';
-    if (p.pink < 1) return '我想吃粉色药片 🌸';
-    return null; // 全吃完，隐藏气泡
+    if (active.length === 0) return null;
+    active.sort((a, b) => b.start - a.start);
+    return active[0].d.msg;
   }
 
   // 小狗闲话（点击小狗且当前没有该催的药时，从中随机一句）
@@ -632,25 +627,25 @@
   }
 
   // 根据美东时间切封面 + 主界面房间背景：18:00-06:00 用夜景
-  // 晚上有一定概率显示 "小狗趴窗" 惊喜版房间（只显示 2 秒后自动消失）
-  const SURPRISE_CHANCE = 1.0; // 调试用 100%，正式改成 0.3
   function updateCoverTheme() {
     const h = etHour();
     const isNight = h < 6 || h >= 18;
     document.getElementById('cover').classList.toggle('night', isNight);
     const room = document.getElementById('room');
     room.classList.toggle('night', isNight);
-    if (!isNight) {
-      room.classList.remove('surprise');
-      delete room.dataset.surpriseDecided;
-    } else if (!room.dataset.surpriseDecided) {
-      // 每次进入夜晚只掷骰子一次，避免每分钟闪烁
-      room.dataset.surpriseDecided = '1';
-      if (Math.random() < SURPRISE_CHANCE) {
-        room.classList.add('surprise');
-        // 2 秒后小黄狗消失，换回普通夜景
-        setTimeout(() => room.classList.remove('surprise'), 2000);
-      }
+    if (!isNight) room.classList.remove('surprise');
+  }
+
+  // 晚上有 10% 概率显示 "小狗趴窗" 惊喜版房间，每次进入 room 界面掷一次
+  const SURPRISE_CHANCE = 0.1;
+  function rollSurprise() {
+    const h = etHour();
+    const isNight = h < 6 || h >= 18;
+    const room = document.getElementById('room');
+    room.classList.remove('surprise');
+    if (isNight && Math.random() < SURPRISE_CHANCE) {
+      room.classList.add('surprise');
+      setTimeout(() => room.classList.remove('surprise'), 2000);
     }
   }
 
@@ -661,6 +656,7 @@
     if (state.lastDay !== today) {
       state.lastDay = today;
       state.todayProgress = { blue: 0, yellow: 0, white: 0, pink: 0 };
+      state.doseTakenAt = {};
       state.todayDone = false;
       saveState(state);
     }
@@ -721,6 +717,7 @@
   function goMain() {
     document.getElementById('cover').classList.add('hidden');
     document.getElementById('main').classList.remove('hidden');
+    rollSurprise();
   }
   function goCover() {
     document.getElementById('main').classList.add('hidden');
@@ -733,7 +730,12 @@
     const cur = state.todayProgress[color] || 0;
     if (cur >= total) return;
 
-    state.todayProgress[color] = cur + 1;
+    const newCount = cur + 1;
+    state.todayProgress[color] = newCount;
+    // 记录该 dose 的实际吃药时刻（美东小时），用于依赖窗口判断
+    if (!state.doseTakenAt) state.doseTakenAt = {};
+    const key = color + '-' + newCount;
+    state.doseTakenAt[key] = etHour();
     saveState(state);
     render();
 
