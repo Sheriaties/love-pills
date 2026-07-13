@@ -130,6 +130,32 @@
     border: 3px solid #6d4423;
   }
 
+  /* 封面飞行物 */
+  .flyer {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+  }
+  .flyer.balloon { width: 140px; }
+  .flyer.paper   { width: 130px; }
+  .flyer.plane   { width: 150px; }
+  .flyer.balloon.flying { animation: flyBalloon 22s linear forwards; }
+  .flyer.paper.flying   { animation: flyDownLeft 18s linear forwards; }
+  .flyer.plane.flying   { animation: flyDownLeft 20s linear forwards; }
+  @keyframes flyBalloon {
+    0%   { transform: translate(0, 0)         rotate(-3deg); opacity: 0; }
+    10%  {                                                   opacity: 1; }
+    90%  {                                                   opacity: 1; }
+    100% { transform: translate(80vw, -110vh) rotate(3deg);  opacity: 0; }
+  }
+  @keyframes flyDownLeft {
+    0%   { transform: translate(0, 0)         rotate(6deg);  opacity: 0; }
+    10%  {                                                   opacity: 1; }
+    90%  {                                                   opacity: 1; }
+    100% { transform: translate(-120vw, 90vh) rotate(-6deg); opacity: 0; }
+  }
+
   /* ========== 主界面（页面2） ========== */
   #main {
     background: linear-gradient(180deg, #ffd8b8 0%, #ffc9a0 100%);
@@ -410,6 +436,9 @@
 
 <!-- 页面1：封面 -->
 <div id="cover" class="page">
+  <img class="flyer balloon" src="images/fly_v11.png" style="left:-15%; top:75%;" alt="">
+  <img class="flyer paper"   src="images/fly_v12.png" style="right:-15%; top:8%;" alt="">
+  <img class="flyer plane"   src="images/fly_v13.png" style="right:-15%; top:5%;" alt="">
   <div class="signboard">
     <h1>老婆今天吃药没</h1>
   </div>
@@ -483,7 +512,25 @@
     "爱你三万遍，不够不够——"
   ];
 
-  const TODAY = () => new Date().toISOString().slice(0, 10);
+  // 美东时间"逻辑日期"：以凌晨 3 点作为分界（03:00 前算前一天）
+  const TODAY = () => {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/New_York',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', hour12: false
+    }).formatToParts(new Date());
+    const y = parts.find(p => p.type === 'year').value;
+    const m = parts.find(p => p.type === 'month').value;
+    const d = parts.find(p => p.type === 'day').value;
+    const h = parseInt(parts.find(p => p.type === 'hour').value);
+    // 若当前美东小时 < 3，日期回退一天
+    if (h < 3) {
+      const dt = new Date(`${y}-${m}-${d}T00:00:00Z`);
+      dt.setUTCDate(dt.getUTCDate() - 1);
+      return dt.toISOString().slice(0, 10);
+    }
+    return `${y}-${m}-${d}`;
+  };
 
   // 获取美东时间的小时数（自动处理夏令时）
   function etHour() {
@@ -652,8 +699,18 @@
   function loadState() {
     const raw = localStorage.getItem('drugState');
     const today = TODAY();
-    let state = raw ? JSON.parse(raw) : { firstDay: today, lastDay: null, streak: 0, todayProgress: {}, todayDone: false };
+    let state = raw ? JSON.parse(raw) : {
+      firstDay: today,
+      lastDay: null,
+      completedDays: 0,
+      todayProgress: {},
+      doseTakenAt: {},
+      todayDone: false
+    };
+    if (state.completedDays == null) state.completedDays = 0;
     if (state.lastDay !== today) {
+      // 跨天：若昨天全部吃完，累计天数 +1
+      if (state.todayDone) state.completedDays += 1;
       state.lastDay = today;
       state.todayProgress = { blue: 0, yellow: 0, white: 0, pink: 0 };
       state.doseTakenAt = {};
@@ -667,17 +724,15 @@
     localStorage.setItem('drugState', JSON.stringify(state));
   }
 
-  function daysSinceStart(state) {
-    const start = new Date(state.firstDay);
-    const now = new Date(TODAY());
-    return Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+  function completedDaysLabel(state) {
+    return state.completedDays;
   }
 
   let state = loadState();
 
   // ========== 渲染 ==========
   function render() {
-    const days = daysSinceStart(state);
+    const days = state.completedDays || 0;
     document.getElementById('coverDays').innerHTML = `已经吃药 <b>${days}</b> 天啦 🌸`;
     document.getElementById('mainDays').innerHTML = `已经吃药 <b>${days}</b> 天啦 💕`;
 
