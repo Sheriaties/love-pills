@@ -1,0 +1,17 @@
+{
+  "name": "老婆今天吃药没",
+  "short_name": "吃药没",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#ffd8b8",
+  "theme_color": "#ffd8b8",
+  "icons": [
+    {
+      "src": "images/dog.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
