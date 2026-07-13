@@ -242,8 +242,8 @@
   }
   /* 小狗 */
   .dog {
-    position: absolute; bottom: -25%; left: 45%; transform: translateX(-50%);
-    width: 90%; height: auto;
+    position: absolute; bottom: -28%; left: 45%; transform: translateX(-50%);
+    width: 70%; height: auto;
     animation: dogBreath 3s ease-in-out infinite;
     cursor: pointer;
     z-index: 2;
@@ -717,51 +717,14 @@
     }, 250);
   }
 
-  // ========== 音乐播放 ==========
-  const MUSIC_DAY = [
-    'music/day/Cloud Watching.mp3',
-    "music/day/It's Going To Be A Good Day.mp3",
-    'music/day/Look On The Bright Side.mp3'
-  ];
-  const MUSIC_NIGHT = [
-    'music/night/Quiet Night.mp3',
-    'music/night/Taking a Bath And Jumping Into Bed.mp3'
-  ];
-  const audio = new Audio();
-  audio.volume = 0.5;
-  let lastMusicIdx = -1;
-  function pickTrack() {
-    const h = etHour();
-    const isNight = h < 6 || h >= 18;
-    const pool = isNight ? MUSIC_NIGHT : MUSIC_DAY;
-    let idx;
-    do { idx = Math.floor(Math.random() * pool.length); }
-    while (idx === lastMusicIdx && pool.length > 1);
-    lastMusicIdx = idx;
-    return pool[idx];
-  }
-  audio.addEventListener('ended', () => {
-    audio.src = pickTrack();
-    audio.play().catch(() => {});
-  });
-  function startMusic() {
-    if (!audio.src) audio.src = pickTrack();
-    audio.play().catch(() => { /* iOS 需要用户交互，会在下次点击时自动重试 */ });
-  }
-  function stopMusic() {
-    audio.pause();
-  }
-
   // ========== 交互 ==========
   function goMain() {
     document.getElementById('cover').classList.add('hidden');
     document.getElementById('main').classList.remove('hidden');
-    startMusic();
   }
   function goCover() {
     document.getElementById('main').classList.add('hidden');
     document.getElementById('cover').classList.remove('hidden');
-    stopMusic();
   }
 
   function takePill(el) {
