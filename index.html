@@ -850,6 +850,29 @@
 
   render();
 
+  // 封面飞行物调度：一次一个，飞完等 5-15 秒随机再来一个
+  const flyerClasses = ['balloon', 'paper', 'plane'];
+  const flyerDurations = { balloon: 22000, paper: 18000, plane: 20000 };
+  function scheduleNextFlyer() {
+    const delay = 5000 + Math.random() * 10000; // 5-15 秒
+    setTimeout(() => {
+      const cls = flyerClasses[Math.floor(Math.random() * flyerClasses.length)];
+      const el = document.querySelector('.flyer.' + cls);
+      if (el) {
+        el.classList.remove('flying');
+        void el.offsetWidth;
+        el.classList.add('flying');
+        setTimeout(() => {
+          el.classList.remove('flying');
+          scheduleNextFlyer();
+        }, flyerDurations[cls] + 500);
+      } else {
+        scheduleNextFlyer();
+      }
+    }, delay);
+  }
+  setTimeout(scheduleNextFlyer, 3000);
+
   // 跨天自动重置：每分钟检查一次日期
   setInterval(() => {
     if (state.lastDay !== TODAY()) {
