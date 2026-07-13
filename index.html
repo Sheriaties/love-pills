@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>老婆今天吃药没</title>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Long+Cang&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    font-family: "ZCOOL KuaiLe", "PingFang SC", sans-serif;
+    user-select: none;
+  }
+
+  /* ========== 页面容器 ========== */
+  .page {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .page.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+
+  /* ========== 封面（页面1） ========== */
+  #cover {
+    background: url('images/sky.png') center/cover no-repeat, linear-gradient(180deg, #7ec8f0 0%, #b8e0f5 60%, #e6f4fb 100%);
+    flex-direction: column;
+    image-rendering: pixelated;
+  }
+  #cover.night {
+    background: url('images/night.png') center/cover no-repeat, linear-gradient(180deg, #1a2f5c 0%, #2a4680 60%, #3a5a9c 100%);
+  }
+  /* 云朵 */
+  .cloud {
+    position: absolute; background: white; border-radius: 50%;
+    opacity: 0.85; filter: blur(0.5px);
+    animation: float 8s ease-in-out infinite;
+  }
+  .cloud::before, .cloud::after {
+    content: ''; position: absolute; background: white; border-radius: 50%;
+  }
+  .c1 { width: 80px; height: 80px; top: 8%; left: 10%; }
+  .c1::before { width: 60px; height: 60px; top: 20px; left: -30px; }
+  .c1::after { width: 70px; height: 70px; top: 10px; left: 50px; }
+  .c2 { width: 100px; height: 100px; top: 12%; right: 15%; animation-delay: 2s; }
+  .c2::before { width: 70px; height: 70px; top: 30px; left: -40px; }
+  .c2::after { width: 80px; height: 80px; top: 15px; left: 60px; }
+  .c3 { width: 60px; height: 60px; top: 40%; left: 5%; animation-delay: 4s; }
+  .c3::before { width: 45px; height: 45px; top: 15px; left: -25px; }
+  .c4 { width: 70px; height: 70px; top: 35%; right: 8%; animation-delay: 1s; }
+  .c4::before { width: 50px; height: 50px; top: 20px; left: 45px; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+  /* 星星 */
+  .star { position: absolute; color: #fff9c4; font-size: 20px; animation: twinkle 2s infinite; }
+  .s1 { top: 15%; left: 30%; animation-delay: 0s; }
+  .s2 { top: 8%; left: 55%; animation-delay: 0.5s; }
+  .s3 { top: 20%; right: 30%; animation-delay: 1s; }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* 木牌标题 */
+  .signboard {
+    background: linear-gradient(180deg, #d4a574 0%, #b8834a 100%);
+    padding: 30px 60px;
+    border: 6px solid #6d4423;
+    border-radius: 12px;
+    box-shadow:
+      inset 0 0 0 3px #e8c896,
+      0 8px 0 #5a3818,
+      0 12px 20px rgba(0,0,0,0.3);
+    position: relative;
+    animation: sway 4s ease-in-out infinite;
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(1deg); }
+  }
+  .signboard::before, .signboard::after {
+    content: '🌿'; position: absolute; top: -15px; font-size: 30px;
+  }
+  .signboard::before { left: 10px; transform: rotate(-20deg); }
+  .signboard::after { right: 10px; transform: rotate(20deg); }
+  .signboard h1 {
+    font-size: 64px; color: #4a2c15;
+    text-shadow: 2px 2px 0 #e8c896, 4px 4px 0 rgba(0,0,0,0.2);
+    letter-spacing: 8px;
+  }
+
+  /* 开始按钮 */
+  .start-btn {
+    margin-top: 50px;
+    background: linear-gradient(180deg, #e8c896 0%, #c9a06a 100%);
+    padding: 20px 60px;
+    border: 5px solid #6d4423;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 2px #f5e0b8, 0 6px 0 #5a3818;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 42px;
+    color: #4a2c15;
+    letter-spacing: 6px;
+    transition: transform 0.1s;
+  }
+  .start-btn:active {
+    transform: translateY(4px);
+    box-shadow: inset 0 0 0 2px #f5e0b8, 0 2px 0 #5a3818;
+  }
+
+  .cover-days {
+    margin-top: 40px;
+    font-size: 24px;
+    color: #4a2c15;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 10px 30px;
+    border-radius: 30px;
+    border: 3px solid #6d4423;
+  }
+
+  /* ========== 主界面（页面2） ========== */
+  #main {
+    background: linear-gradient(180deg, #ffd8b8 0%, #ffc9a0 100%);
+  }
+  .main-inner {
+    width: 92%; height: 88%;
+    display: grid;
+    grid-template-columns: 200px 1fr 240px;
+    gap: 24px;
+    padding: 20px;
+  }
+
+  /* 左侧药丸列 */
+  .pills {
+    display: flex; flex-direction: column; justify-content: space-around;
+    background: rgba(255, 255, 255, 0.6);
+    border: 4px solid #6d4423;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 6px 0 #5a3818;
+  }
+  .pill {
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 12px;
+    transition: transform 0.15s;
+  }
+  .pill:active { transform: scale(0.92); }
+  .pill-shape {
+    width: 56px; height: 36px;
+    border-radius: 18px;
+    border: 3px solid #333;
+    box-shadow: inset -3px -3px 0 rgba(0,0,0,0.15), 0 3px 0 rgba(0,0,0,0.2);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pill-shape::after {
+    content: ''; position: absolute; top: 6px; left: 10px;
+    width: 10px; height: 6px; background: rgba(255,255,255,0.6);
+    border-radius: 50%;
+  }
+  .pill-blue .pill-shape { background: #5aa9e6; }
+  .pill-yellow .pill-shape { background: #ffd93d; }
+  .pill-white .pill-shape { background: #f5f5f5; }
+  .pill-pink .pill-shape { background: #ff9ec4; }
+  .pill-count {
+    font-size: 32px; color: #4a2c15;
+    font-family: "ZCOOL KuaiLe", sans-serif;
+  }
+  .pill.done { opacity: 0.5; }
+  .pill.done .pill-shape::before {
+    content: '✓'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #2d7a2d; font-size: 28px; font-weight: bold;
+    text-shadow: 1px 1px 0 white;
+  }
+
+  /* 中间房间 */
+  .room {
+    position: relative;
+    background: url('images/room.png') center/cover no-repeat, #d4a374;
+    border: 5px solid #6d4423;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 0 #5a3818, inset 0 0 40px rgba(0,0,0,0.1);
+    image-rendering: pixelated;
+  }
+  .room.night {
+    background: url('images/night_room.png') center/cover no-repeat, #2a3050;
+  }
+  .room.night.surprise {
+    background: url('images/surprise.png') center/cover no-repeat, #2a3050;
+  }
+  /* 窗户 */
+  .window {
+    position: absolute; top: 12%; left: 20%;
+    width: 22%; height: 32%;
+    background: linear-gradient(180deg, #7ec8f0 0%, #b8e0f5 100%);
+    border: 4px solid #6d4423;
+    border-radius: 4px;
+  }
+  .window::before, .window::after {
+    content: ''; position: absolute; background: #6d4423;
+  }
+  .window::before { top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; }
+  .window::after { left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; }
+  /* 相框 */
+  .picture {
+    position: absolute; top: 15%; right: 20%;
+    width: 15%; height: 22%;
+    background: linear-gradient(135deg, #7ec8a8 0%, #a8d8b8 100%);
+    border: 6px solid #6d4423;
+    border-radius: 4px;
+  }
+  .picture::after {
+    content: '🌸'; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+  }
+  /* 盆栽 */
+  .plant {
+    position: absolute; bottom: 40%; right: 5%;
+    font-size: 48px;
+  }
+  /* 台灯 */
+  .lamp {
+    position: absolute; top: 5%; left: 8%;
+    font-size: 40px;
+  }
+  /* 小狗 */
+  .dog {
+    position: absolute; bottom: -25%; left: 45%; transform: translateX(-50%);
+    width: 54%; height: auto;
+    animation: dogBreath 3s ease-in-out infinite;
+    cursor: pointer;
+    z-index: 2;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+  }
+  @keyframes dogBreath {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.04); }
+  }
+  .dog.jump { animation: dogJump 0.6s; }
+  @keyframes dogJump {
+    0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+    50% { transform: translateX(-50%) translateY(-40px) scale(1.1); }
+  }
+  /* 小狗对话气泡 */
+  .dog-bubble {
+    position: absolute;
+    bottom: 44%;
+    left: 53%;
+    background: white;
+    border: 4px solid #6d4423;
+    border-radius: 20px;
+    padding: 20px 32px;
+    font-size: 25px;
+    color: #4a2c15;
+    box-shadow: 0 4px 0 #5a3818;
+    max-width: 340px;
+    width: max-content;
+    word-break: break-word;
+    line-height: 1.4;
+    text-align: center;
+    z-index: 3;
+    animation: bubbleBob 2.5s ease-in-out infinite;
+  }
+  .dog-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -14px; left: 20px;
+    width: 0; height: 0;
+    border: 10px solid transparent;
+    border-top-color: #6d4423;
+    border-bottom: 0;
+  }
+  .dog-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 24px;
+    width: 0; height: 0;
+    border: 7px solid transparent;
+    border-top-color: white;
+    border-bottom: 0;
+  }
+  @keyframes bubbleBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes dogBreath {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+  }
+  .dog.jump { animation: dogJump 0.6s; }
+  @keyframes dogJump {
+    0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+    50% { transform: translateX(-50%) translateY(-40px) scale(1.1); }
+  }
+
+  /* 右侧文案 */
+  .quote-box {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, 0.7);
+    border: 4px solid #6d4423;
+    border-radius: 16px;
+    padding: 24px 20px;
+    box-shadow: 0 6px 0 #5a3818;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .quote-box:active { transform: scale(0.97); }
+  .quote-box .quote {
+    font-family: "Long Cang", "ZCOOL KuaiLe", cursive;
+    font-size: 26px; line-height: 1.7;
+    color: #4a2c15;
+    transition: opacity 0.25s;
+  }
+  .quote-box .quote.fade { opacity: 0; }
+  .quote-box .signature {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #8b5a2b;
+  }
+  .quote-box .hint {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #b58860;
+    opacity: 0.7;
+  }
+
+  /* 底部天数条 */
+  .days-bar {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.85);
+    padding: 10px 40px;
+    border: 3px solid #6d4423;
+    border-radius: 30px;
+    font-size: 22px;
+    color: #4a2c15;
+    box-shadow: 0 4px 0 #5a3818;
+  }
+
+  /* 返回按钮 */
+  .back-btn {
+    position: absolute; top: 20px; left: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 3px solid #6d4423;
+    border-radius: 50%;
+    width: 50px; height: 50px;
+    font-size: 24px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 0 #5a3818;
+  }
+  .back-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #5a3818; }
+
+  /* 爱心飘出动画 */
+  .heart {
+    position: absolute; font-size: 32px;
+    pointer-events: none;
+    animation: heartFloat 1.2s ease-out forwards;
+  }
+  @keyframes heartFloat {
+    0% { opacity: 1; transform: translateY(0) scale(0.5); }
+    100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+  }
+
+  /* 庆祝彩带 */
+  .confetti {
+    position: absolute; width: 10px; height: 20px;
+    animation: confettiFall 3s linear forwards;
+    pointer-events: none;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-50px) rotate(0); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* 完成提示 */
+  .done-toast {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: rgba(255, 255, 255, 0.95);
+    border: 5px solid #ff9ec4;
+    border-radius: 24px;
+    padding: 40px 80px;
+    font-size: 48px;
+    color: #d4577a;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 100;
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .done-toast.show { transform: translate(-50%, -50%) scale(1); }
+</style>
+</head>
+<body>
+
+<!-- 页面1：封面 -->
+<div id="cover" class="page">
+  <div class="signboard">
+    <h1>老婆今天吃药没</h1>
+  </div>
+  <button class="start-btn" onclick="goMain()">开始</button>
+  <div class="cover-days" id="coverDays">已经吃药 0 天啦 🌸</div>
+</div>
+
+<!-- 页面2：主界面 -->
+<div id="main" class="page hidden">
+  <button class="back-btn" onclick="goCover()">←</button>
+  <div class="main-inner">
+    <!-- 药丸列 -->
+    <div class="pills">
+      <div class="pill pill-blue" data-color="blue" data-total="3" onclick="takePill(this)">
+        <div class="pill-shape"></div>
+        <div class="pill-count">0/3</div>
+      </div>
+      <div class="pill pill-yellow" data-color="yellow" data-total="2" onclick="takePill(this)">
+        <div class="pill-shape"></div>
+        <div class="pill-count">0/2</div>
+      </div>
+      <div class="pill pill-white" data-color="white" data-total="2" onclick="takePill(this)">
+        <div class="pill-shape"></div>
+        <div class="pill-count">0/2</div>
+      </div>
+      <div class="pill pill-pink" data-color="pink" data-total="1" onclick="takePill(this)">
+        <div class="pill-shape"></div>
+        <div class="pill-count">0/1</div>
+      </div>
+    </div>
+
+    <!-- 房间 -->
+    <div class="room" id="room">
+      <div class="dog-bubble" id="dogBubble" style="display:none"></div>
+      <img class="dog" id="dog" src="images/dog.png" alt="狗狗" onclick="petDog(event)">
+    </div>
+
+    <!-- 文案 -->
+    <div class="quote-box" onclick="nextQuote()">
+      <div class="quote" id="quote">今天也要乖乖吃药喔 ♡</div>
+      <div class="signature">—— 爱你的老公</div>
+    </div>
+  </div>
+
+  <div class="days-bar" id="mainDays">已经吃药 0 天啦 💕</div>
+  <div class="done-toast" id="doneToast">今天完成啦！💕</div>
+</div>
+
+<script>
+  // ========== 数据 ==========
+  const QUOTES = [
+    "别委屈自己了 小笨蛋",
+    "隔着这么远你老公还是在好好想你哦",
+    "一想到今晚的月亮是你几个小时前看到的，我不由得喜欢起它来",
+    "小笨蛋一天到晚的别只想着别人，要好好珍惜自己",
+    "今天什么都不想干，想要的只有你的温柔乡",
+    "什么都要给你最好的……所有都是……对吧？",
+    "今天来到你身边，依偎在你的阴影下，我开始审视自己的孤独，发现它更孤独了",
+    "想把你揉进怀里，一点缝隙都不留",
+    "今天不想聊天，只想安静地把你亲一遍",
+    "你要是在我旁边，这会儿肯定被我压着不许动",
+    "隔这么远，只能靠想象你在我怀里的样子撑过今晚",
+    "想你想到失眠，能不能让我抱着你的声音睡",
+    "今晚不许穿太多睡觉，我远程盯着",
+    "等你回来，第一件事就是把你按在门口亲够",
+    "我不是馋你身子，我是馋你整个人——身子也算在里面",
+    "每次视频都想隔着屏幕把你捞过来",
+    "药是治病的，你才是治我的",
+    "想你想到人有点燥热，空气有点潮湿",
+    "你身上到底是什么味道，我在家翻箱倒柜找不到，我是怎样上的瘾？",
+    "爱你三万遍，不够不够——"
+  ];
+
+  const TODAY = () => new Date().toISOString().slice(0, 10);
+
+  // 获取美东时间的小时数（自动处理夏令时）
+  function etHour() {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    }).formatToParts(new Date());
+    const h = parseInt(parts.find(p => p.type === 'hour').value);
+    const m = parseInt(parts.find(p => p.type === 'minute').value);
+    return h + m / 60;
+  }
+
+  // 根据美东时间 + 当前进度，返回小狗气泡该说什么。null = 隐藏气泡。
+  function getReminder(state) {
+    const h = etHour();
+    const p = state.todayProgress;
+
+    // 时段目标（美东时间截止前应吃到的累计数）
+    // 10:00 前  → 蓝1
+    // 12:00 前  → 蓝2、白1、黄1
+    // 17:00 前  → 蓝3、白2、黄2
+    // 21:00 起  → 粉1
+
+    // 早上时段：10 点前只催第 1 颗蓝
+    if (h < 10) {
+      if (p.blue < 1) return '我想吃蓝色药丸 💙';
+      return null; // 都跟上了，不催
+    }
+
+    // 上午时段：10-12 点，第 1 颗蓝必须
+    if (h < 12) {
+      if (p.blue < 1) return '我想吃蓝色药丸 💙';
+      return null;
+    }
+
+    // 中午～下午 5 点：第 2 组（蓝2、白1、黄1）
+    if (h < 17) {
+      if (p.blue < 2) return '我想吃蓝色药丸 💙';
+      if (p.white < 1) return '我想吃白色细长药片 🤍';
+      if (p.yellow < 1) return '我想吃黄色药片 💛';
+      return null;
+    }
+
+    // 下午 5 点～晚 9 点：第 3 组（蓝3、白2、黄2）
+    if (h < 21) {
+      if (p.blue < 3) return '我想吃蓝色药丸 💙';
+      if (p.white < 2) return '我想吃白色细长药片 🤍';
+      if (p.yellow < 2) return '我想吃黄色药片 💛';
+      return null;
+    }
+
+    // 晚 9 点后：粉色
+    if (p.blue < 3) return '我想吃蓝色药丸 💙';
+    if (p.white < 2) return '我想吃白色细长药片 🤍';
+    if (p.yellow < 2) return '我想吃黄色药片 💛';
+    if (p.pink < 1) return '我想吃粉色药片 🌸';
+    return null; // 全吃完，隐藏气泡
+  }
+
+  // 小狗闲话（点击小狗且当前没有该催的药时，从中随机一句）
+  const DOG_CHATTER = [
+    "我是老公的小香宝",
+    "好想老公",
+    "老公怎么还不醒",
+    "别人都有老公陪 我老公呢……",
+    "想老公了 一整天没抱到",
+    "老公的怀里最舒服",
+    "老公摸摸头我今天累",
+    "老公老公老公老公老公",
+    "想被老公亲亲",
+    "老公的味道让我上头",
+    "老公不在家 床都空一半",
+    "老公不许走那么久",
+    "老公回来第一件事我要抱抱",
+    "想被老公抱着睡",
+    "老公给我讲个笑话嘛",
+    "老公 我腰酸了帮我揉揉",
+    "有老公真好 没老公真委屈",
+    "老公不联系我 我要生气了",
+    "视频吧视频吧",
+    "老公老公在干嘛……",
+    "其实还是想和老公一起玩的…但我又是傲娇…",
+    "才不想他呢……骗你的",
+    "又不是我先说想他的",
+    "我很独立的 一点都不需要老公",
+    "才没有偷偷看老公朋友圈",
+    "就算他不主动 我也不主动的哼",
+    "我可以自己待着 但是不想",
+    "谁稀罕 我自己也能过（假的）",
+    "又不是很想他 也就 24 小时想吧",
+    "我今天不理老公了……好像忍不了 5 分钟",
+    "今天没啥事了……去怪怪老公",
+    "不能天天想老公 去工作去工作",
+    "想喝一点点了",
+    "啥时候一起去漂流呢",
+    "想去拍小松鼠！",
+    "想吃甜品了",
+    "想吃火锅",
+    "想睡觉但又不困",
+    "今天天气好 想出门散步",
+    "想剪头发了 但又懒",
+    "想养一只小猫",
+    "想去海边玩",
+    "想吃老公做的饭",
+    "想打扮得美美的",
+    "想去一次日本～",
+    "想被夸一下今天",
+    "是不是该洗头了……",
+    "又胖了吗……不管了",
+    "今天心情有点down 谁哄哄我",
+    "怎么感觉又饿了",
+    "早上起不来晚上睡不着",
+    "消息也不回 试探他一下",
+    "突然很爱老公",
+    "觉得自己好幸运 遇到老公",
+    "想和老公在一起一辈子",
+    "有时候看着他会突然发呆",
+    "想成为他最想回的家",
+    "陪我久一点好不好",
+    "我今天巨可爱 老公错过了",
+    "老公不看我我要转身摔倒了哦",
+    "老公！！！！！！！！！！",
+    "装作若无其事地问一句 想我吗",
+    "假装吃醋——你到底爱我几分",
+    "我怀疑我老公被外星人换了 因为他不理我",
+    "抬头有云 真好",
+    "猫咪从窗外走过 是运气",
+    "收到老公一句话 一天都好过",
+    "想被他重视一下下",
+    "我其实很容易被哄好的",
+    "我在等风也在等他",
+    "平淡的日子里想要一点糖",
+    "想拉着他的手一直走一直走",
+    "什么都可以慢慢来 只要他在"
+  ];
+
+  function updateBubble() {
+    const bubble = document.getElementById('dogBubble');
+    const msg = getReminder(state);
+    if (msg === null) {
+      bubble.style.display = 'none';
+    } else {
+      bubble.style.display = '';
+      bubble.textContent = msg;
+    }
+  }
+
+  // 根据美东时间切封面 + 主界面房间背景：18:00-06:00 用夜景
+  // 晚上有一定概率显示 "小狗趴窗" 惊喜版房间（只显示 2 秒后自动消失）
+  const SURPRISE_CHANCE = 1.0; // 调试用 100%，正式改成 0.3
+  function updateCoverTheme() {
+    const h = etHour();
+    const isNight = h < 6 || h >= 18;
+    document.getElementById('cover').classList.toggle('night', isNight);
+    const room = document.getElementById('room');
+    room.classList.toggle('night', isNight);
+    if (!isNight) {
+      room.classList.remove('surprise');
+      delete room.dataset.surpriseDecided;
+    } else if (!room.dataset.surpriseDecided) {
+      // 每次进入夜晚只掷骰子一次，避免每分钟闪烁
+      room.dataset.surpriseDecided = '1';
+      if (Math.random() < SURPRISE_CHANCE) {
+        room.classList.add('surprise');
+        // 2 秒后小黄狗消失，换回普通夜景
+        setTimeout(() => room.classList.remove('surprise'), 2000);
+      }
+    }
+  }
+
+  function loadState() {
+    const raw = localStorage.getItem('drugState');
+    const today = TODAY();
+    let state = raw ? JSON.parse(raw) : { firstDay: today, lastDay: null, streak: 0, todayProgress: {}, todayDone: false };
+    if (state.lastDay !== today) {
+      state.lastDay = today;
+      state.todayProgress = { blue: 0, yellow: 0, white: 0, pink: 0 };
+      state.todayDone = false;
+      saveState(state);
+    }
+    return state;
+  }
+
+  function saveState(state) {
+    localStorage.setItem('drugState', JSON.stringify(state));
+  }
+
+  function daysSinceStart(state) {
+    const start = new Date(state.firstDay);
+    const now = new Date(TODAY());
+    return Math.floor((now - start) / (1000 * 60 * 60 * 24)) + 1;
+  }
+
+  let state = loadState();
+
+  // ========== 渲染 ==========
+  function render() {
+    const days = daysSinceStart(state);
+    document.getElementById('coverDays').innerHTML = `已经吃药 <b>${days}</b> 天啦 🌸`;
+    document.getElementById('mainDays').innerHTML = `已经吃药 <b>${days}</b> 天啦 💕`;
+
+    document.querySelectorAll('.pill').forEach(pill => {
+      const color = pill.dataset.color;
+      const total = parseInt(pill.dataset.total);
+      const cur = state.todayProgress[color] || 0;
+      pill.querySelector('.pill-count').textContent = `${cur}/${total}`;
+      pill.classList.toggle('done', cur >= total);
+    });
+
+    // 每天默认一句情话（跨天会换）
+    const quoteIdx = (new Date(TODAY()).getTime() / 86400000) % QUOTES.length | 0;
+    document.getElementById('quote').textContent = QUOTES[quoteIdx];
+
+    // 更新小狗提醒气泡 + 封面昼夜主题
+    updateBubble();
+    updateCoverTheme();
+  }
+
+  // 点击换一句（避免连续两次一样）
+  let lastQuoteIdx = -1;
+  function nextQuote() {
+    const el = document.getElementById('quote');
+    let idx;
+    do { idx = Math.floor(Math.random() * QUOTES.length); }
+    while (idx === lastQuoteIdx && QUOTES.length > 1);
+    lastQuoteIdx = idx;
+    el.classList.add('fade');
+    setTimeout(() => {
+      el.textContent = QUOTES[idx];
+      el.classList.remove('fade');
+    }, 250);
+  }
+
+  // ========== 交互 ==========
+  function goMain() {
+    document.getElementById('cover').classList.add('hidden');
+    document.getElementById('main').classList.remove('hidden');
+  }
+  function goCover() {
+    document.getElementById('main').classList.add('hidden');
+    document.getElementById('cover').classList.remove('hidden');
+  }
+
+  function takePill(el) {
+    const color = el.dataset.color;
+    const total = parseInt(el.dataset.total);
+    const cur = state.todayProgress[color] || 0;
+    if (cur >= total) return;
+
+    state.todayProgress[color] = cur + 1;
+    saveState(state);
+    render();
+
+    // 爱心动画
+    spawnHearts(el);
+    // 药丸弹跳
+    el.style.transform = 'scale(1.2)';
+    setTimeout(() => el.style.transform = '', 200);
+
+    // 检查是否全部完成
+    checkAllDone();
+  }
+
+  function spawnHearts(el) {
+    const rect = el.getBoundingClientRect();
+    for (let i = 0; i < 3; i++) {
+      const h = document.createElement('div');
+      h.className = 'heart';
+      h.textContent = ['💕', '💖', '💝', '❤️'][i % 4];
+      h.style.left = (rect.left + rect.width / 2 + (Math.random() - 0.5) * 40) + 'px';
+      h.style.top = rect.top + 'px';
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 1200);
+    }
+  }
+
+  let chatterTimer = null;
+  let petCount = 0;
+  let restingUntil = 0;
+  function petDog(e) {
+    const dog = document.getElementById('dog');
+    dog.classList.remove('jump');
+    void dog.offsetWidth;
+    dog.classList.add('jump');
+    spawnHearts(dog);
+
+    const bubble = document.getElementById('dogBubble');
+    const now = Date.now();
+
+    // 累了阶段：20 秒内点她只回"累了 让我休息一下"
+    if (now < restingUntil) {
+      bubble.textContent = '累了 让我休息一下 😪';
+      bubble.style.display = '';
+      clearTimeout(chatterTimer);
+      chatterTimer = setTimeout(() => {
+        if (Date.now() >= restingUntil && getReminder(state) === null) {
+          bubble.style.display = 'none';
+        }
+      }, 3500);
+      return;
+    }
+
+    // 有该催的药 → 保留提醒；否则计数 + 说话
+    const reminder = getReminder(state);
+    if (reminder !== null) return;
+
+    petCount++;
+    let line;
+    if (petCount >= 25) {
+      line = '怎么一直是我在说！我老公呢！！！！！';
+      restingUntil = now + 20000; // 之后 20 秒进入 "累了" 状态
+      petCount = 0;
+    } else {
+      line = DOG_CHATTER[Math.floor(Math.random() * DOG_CHATTER.length)];
+    }
+    bubble.textContent = line;
+    bubble.style.display = '';
+    clearTimeout(chatterTimer);
+    chatterTimer = setTimeout(() => {
+      if (Date.now() >= restingUntil && getReminder(state) === null) {
+        bubble.style.display = 'none';
+      } else if (getReminder(state) !== null) {
+        updateBubble();
+      }
+    }, 3500);
+  }
+
+  function checkAllDone() {
+    const allDone = ['blue', 'yellow', 'white', 'pink'].every(c => {
+      const el = document.querySelector(`.pill-${c}`);
+      return (state.todayProgress[c] || 0) >= parseInt(el.dataset.total);
+    });
+    if (allDone && !state.todayDone) {
+      state.todayDone = true;
+      saveState(state);
+      celebrate();
+    }
+  }
+
+  function celebrate() {
+    const toast = document.getElementById('doneToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+
+    // 彩带
+    const colors = ['#ff9ec4', '#ffd93d', '#5aa9e6', '#7ec8a8', '#c9a06a'];
+    for (let i = 0; i < 60; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.background = colors[i % colors.length];
+      c.style.left = Math.random() * 100 + '%';
+      c.style.top = '-20px';
+      c.style.animationDelay = Math.random() * 1.5 + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4500);
+    }
+
+    // 小狗跳
+    const dog = document.getElementById('dog');
+    dog.classList.remove('jump');
+    void dog.offsetWidth;
+    dog.classList.add('jump');
+  }
+
+  render();
+
+  // 跨天自动重置：每分钟检查一次日期
+  setInterval(() => {
+    if (state.lastDay !== TODAY()) {
+      state = loadState();
+      render();
+    } else {
+      updateBubble();
+      updateCoverTheme();
+    }
+  }, 60 * 1000);
+</script>
+</body>
+</html>
